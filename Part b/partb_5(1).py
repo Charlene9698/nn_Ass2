@@ -20,7 +20,7 @@ MAX_LABEL = 15
 batch_size = 128
 drop_out_rate = 0.5
 
-no_epochs = 10 #originally 100
+no_epochs = 100 #originally 100
 lr = 0.01
 
 tf.logging.set_verbosity(tf.logging.ERROR)

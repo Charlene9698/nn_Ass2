@@ -22,7 +22,7 @@ embedding_size = 20
 
 drop_out_rate = 0.5
 
-no_epochs = 10  #originally 100
+no_epochs = 100  #originally 100
 lr = 0.01
 
 tf.logging.set_verbosity(tf.logging.ERROR)
@@ -167,13 +167,13 @@ def main():
         pylab.plot(range(len(loss)), loss)
         pylab.xlabel('epochs')
         pylab.ylabel('entropy')
-        pylab.savefig('figures/partb_2_entropy.png')
+        pylab.savefig('figures/partb_5(2)_entropy.png')
 
         pylab.figure(2)
         pylab.plot(range(len(test_acc)), test_acc)
         pylab.xlabel('epochs')
         pylab.ylabel('accuracy')
-        pylab.savefig('figures/partb_2_accuracy.png')
+        pylab.savefig('figures/partb_5(2)_accuracy.png')
 
         pylab.show()
         

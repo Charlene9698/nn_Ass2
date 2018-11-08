@@ -16,10 +16,11 @@ MAX_DOCUMENT_LENGTH = 100
 HIDDEN_SIZE = 20
 MAX_LABEL = 15
 EMBEDDING_SIZE = 20
+batch_size = 128
 
-no_epochs = 300 #originally 100
+no_epochs = 100 #originally 100
 lr = 0.01
-clipping_threshold = 2
+#clipping_threshold = 2
 
 tf.logging.set_verbosity(tf.logging.ERROR)
 seed = 10
@@ -31,7 +32,7 @@ def rnn_model(x):
     byte_vectors = tf.one_hot(x, no_char)
     byte_list = tf.unstack(byte_vectors, axis=1)
 
-    cell = tf.nn.rnn_cell.BasicRNNCell(HIDDEN_SIZE)
+    cell = tf.nn.rnn_cell.GRUCell(HIDDEN_SIZE)
     _, encoding = tf.nn.static_rnn(cell, byte_list, dtype=tf.float32)
 
     logits = tf.layers.dense(encoding, MAX_LABEL, activation=tf.nn.softmax)
@@ -88,9 +89,20 @@ def main():
     #applying gradient clippint
     optimizer = tf.train.AdamOptimizer(lr)
     gradients = optimizer.compute_gradients(entropy)
+    '''
     gradient_clipping = [(tf.clip_by_value(grad, -clipping_threshold, clipping_threshold), var) for grad, var in gradients]
     train_op = optimizer.apply_gradients(gradient_clipping)
+    '''
 
+    # Gradient clipping
+    grad_clipping = tf.constant(2.0, name="grad_clipping")
+    clipped_grads_and_vars = []
+    for grad, var in gradients:
+        clipped_grad = tf.clip_by_value(grad, -grad_clipping, grad_clipping)
+        clipped_grads_and_vars.append((clipped_grad, var))
+
+    # Gradient updates
+    train_op = optimizer.apply_gradients(clipped_grads_and_vars)
     accuracy = tf.reduce_mean(tf.cast(tf.equal(tf.argmax(logits, axis=1), y_), tf.float64))
 
     with tf.Session() as sess:
@@ -98,14 +110,24 @@ def main():
 
         # training
         loss = []
+        loss_batch = []
         acc = []
-        for e in range(no_epochs):
-            word_list_, _, loss_  = sess.run([word_list, train_op, entropy], {x: x_train, y_: y_train})
-            loss.append(loss_)
 
+        # breaking down into batches
+        N = len(x_train)
+        idx = np.arange(N)
+
+        for e in range(no_epochs):
+            np.random.shuffle(idx)
+            trainX_batch, trainY_batch = x_train[idx], y_train[idx]
+
+            for start, end in zip(range(0, N, batch_size), range(batch_size, N, batch_size)):
+                word_list_, _, loss_  = sess.run([word_list, train_op, entropy], {x: trainX_batch[start:end], y_: trainY_batch[start:end]})
+                loss_batch.append(loss_)
+
+            loss.append(sum(loss_batch) / len(loss_batch))
+            loss_batch[:] = []
             acc.append(accuracy.eval(feed_dict={x: x_test, y_: y_test}))
-            #acc.append(sess.run(accuracy, feed_dict={x: x_test, y_: y_test}))
-            #print('epoch: %d, accuracy: %g' %(e, acc[e]))
 
             if e%10 == 0:
                 print('epoch: %d, entropy: %g'%(e, loss[e]))
@@ -115,13 +137,13 @@ def main():
         pylab.plot(range(len(loss)), loss)
         pylab.xlabel('epochs')
         pylab.ylabel('entropy')
-        pylab.savefig('figures/partb_6a1(3)_entropy.png')
+        pylab.savefig('figures/partb_6c(3)_entropy.png')
 
         pylab.figure(2)
         pylab.plot(range(len(acc)), acc)
         pylab.xlabel('epochs')
         pylab.ylabel('accuracy')
-        pylab.savefig('figures/partb_6a1(3)_accuracy.png')
+        pylab.savefig('figures/partb_6c(3)_accuracy.png')
 
         pylab.show()
   

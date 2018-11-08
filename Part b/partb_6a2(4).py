@@ -16,6 +16,7 @@ MAX_DOCUMENT_LENGTH = 100
 HIDDEN_SIZE = 20
 MAX_LABEL = 15
 EMBEDDING_SIZE = 20
+batch_size = 128
 
 no_epochs = 100  #originally 100
 lr = 0.01
@@ -35,16 +36,9 @@ def rnn_model(x):
     cell = tf.nn.rnn_cell.BasicLSTMCell(HIDDEN_SIZE)
 
     outputs, states = tf.nn.static_rnn(cell, word_list, dtype=tf.float32)
-    #outputs, states = tf.nn.dynamic_rnn(cell, word_list, dtype=tf.float32)
-
     print('here')
 
-    #outputs = tf.stack(outputs)
-    #states = tf.stack(states)
-
-    #logits = tf.layers.dense(outputs, MAX_LABEL, activation=tf.nn.softmax)
     logits = tf.layers.dense(states[-1], MAX_LABEL, activation=tf.nn.softmax)
-
     return logits, word_list
 
 def data_read_words():
@@ -92,8 +86,6 @@ def main():
     # Create the model
     x = tf.placeholder(tf.int64, [None, MAX_DOCUMENT_LENGTH])
     y_ = tf.placeholder(tf.int64)
-
-
     logits, word_list = rnn_model(x)
 
     entropy = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(labels=tf.one_hot(y_, MAX_LABEL), logits=logits))
@@ -106,11 +98,23 @@ def main():
 
         # training
         loss = []
+        loss_batch = []
         acc = []
-        for e in range(no_epochs):
-            word_list_, _, loss_  = sess.run([word_list, train_op, entropy], {x: x_train, y_: y_train})
-            loss.append(loss_)
 
+        # breaking down into batches
+        N = len(x_train)
+        idx = np.arange(N)
+
+        for e in range(no_epochs):
+            np.random.shuffle(idx)
+            trainX_batch, trainY_batch = x_train[idx], y_train[idx]
+
+            for start, end in zip(range(0, N, batch_size), range(batch_size, N, batch_size)):
+                word_list_, _, loss_  = sess.run([word_list, train_op, entropy], {x: trainX_batch[start:end], y_: trainY_batch[start:end]})
+                loss_batch.append(loss_)
+
+            loss.append(sum(loss_batch) / len(loss_batch))
+            loss_batch[:] = []
             acc.append(accuracy.eval(feed_dict={x: x_test, y_: y_test}))
 
             if e%10 == 0:

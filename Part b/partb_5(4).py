@@ -16,8 +16,9 @@ MAX_DOCUMENT_LENGTH = 100
 HIDDEN_SIZE = 20
 MAX_LABEL = 15
 EMBEDDING_SIZE = 20
+batch_size = 128
 
-no_epochs = 20  #originally 100
+no_epochs = 100  #originally 100
 lr = 0.01
 
 tf.logging.set_verbosity(tf.logging.ERROR)
@@ -100,11 +101,23 @@ def main():
 
         # training
         loss = []
+        loss_batch = []
         acc = []
-        for e in range(no_epochs):
-            word_list_, _, loss_  = sess.run([word_list, train_op, entropy], {x: x_train, y_: y_train, keep_prob:0.5})
-            loss.append(loss_)
 
+        # breaking down into batches
+        N = len(x_train)
+        idx = np.arange(N)
+
+        for e in range(no_epochs):
+            np.random.shuffle(idx)
+            trainX_batch, trainY_batch = x_train[idx], y_train[idx]
+
+            for start, end in zip(range(0, N, batch_size), range(batch_size, N, batch_size)):
+                word_list_, _, loss_  = sess.run([word_list, train_op, entropy], {x: trainX_batch[start:end], y_: trainY_batch[start:end], keep_prob:0.5})
+                loss_batch.append(loss_)
+
+            loss.append(sum(loss_batch) / len(loss_batch))
+            loss_batch[:] = []
             acc.append(accuracy.eval(feed_dict={x: x_test, y_: y_test, keep_prob:0.5}))
 
             if e%10 == 0:
