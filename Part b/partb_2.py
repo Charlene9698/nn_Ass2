@@ -29,9 +29,6 @@ tf.set_random_seed(seed)
 
 #cnn model 
 def word_cnn_model(x):
-    #embedding = tf.cast(tf.contrib.layers.embed_sequence(x, vocab_size=n_words, embed_dim=embedding_size), tf.int64)
-    #input_layer = tf.reshape(tf.one_hot(embedding, 256), [-1, MAX_DOCUMENT_LENGTH, 256, 1]) #[2560, 15]
-
     embedding = tf.contrib.layers.embed_sequence(x, vocab_size=n_words, embed_dim=embedding_size)
     input_layer = tf.reshape(embedding, [-1, MAX_DOCUMENT_LENGTH, embedding_size, 1])
 
@@ -49,7 +46,6 @@ def word_cnn_model(x):
             strides=POOLING_STRIDE,
             padding='SAME')
 
-        #pool1 = tf.squeeze(tf.reduce_max(pool1, 1), squeeze_dims=[1])
     #convolutional & pooling layer 2
     with tf.variable_scope('CNN_Layer2'):
         conv2 = tf.layers.conv2d(
@@ -151,10 +147,7 @@ def main():
 
             loss.append(sum(loss_batch)/len(loss_batch))
             loss_batch[:] = []
-            #test accuracy!!!!!!
             test_acc.append(accuracy.eval(feed_dict={x: x_test, y_: y_test}))
-
-            #test_acc.append(sess.run(accuracy, feed_dict={x: x_test, y_: y_test}))
 
             if e%1 == 0:
                 print('iter: %d, entropy: %g'%(e, loss[e]))

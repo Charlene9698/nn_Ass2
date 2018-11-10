@@ -22,7 +22,7 @@ no_epochs = 100 #originally 100
 lr = 0.01
 
 tf.logging.set_verbosity(tf.logging.ERROR)
-seed = 10
+seed = 10   #originally 10
 tf.set_random_seed(seed)
 
 #is this a character model or word model???
@@ -45,7 +45,6 @@ def rnn_model_lstm(x):
 
     cell = tf.nn.rnn_cell.BasicLSTMCell(HIDDEN_SIZE)
     outputs, states = tf.nn.static_rnn(cell, byte_list, dtype=tf.float32)
-
 
     logits = tf.layers.dense(states[-1], MAX_LABEL, activation=tf.nn.softmax)
 

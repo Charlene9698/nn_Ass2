@@ -3,7 +3,7 @@ import pandas
 import tensorflow as tf
 import csv
 import pylab
-
+import time
 import os
 
 if not os.path.isdir('figures'):
@@ -181,17 +181,26 @@ def main():
         #breaking down into batches
         N = len(x_train)
         idx = np.arange(N)
+
+        training_time_1 = 0  # with dropout
+        training_time_2 = 0  # without dropout
+        training_time = [[], []]
         
         for e in range(no_epochs):
             np.random.shuffle(idx)
             trainX_batch, trainY_batch = x_train[idx], y_train[idx]
             #batch training
             for start, end in zip(range(0, N, batch_size), range(batch_size, N, batch_size)):
+                start1 = time.time()
                 _, loss_ = sess.run([train_op, entropy], {x: trainX_batch[start:end], y_: trainY_batch[start:end]})
                 loss_batch.append(loss_)
+                training_time_1 += time.time() - start1
 
+                #without dropout
+                start2 = time.time()
                 _, loss2_ = sess.run([train_op2, entropy2], {x2: trainX_batch[start:end], y2_: trainY_batch[start:end]})
                 loss_batch2.append(loss2_)
+                training_time_2 += time.time() - start2
 
             loss.append(sum(loss_batch)/len(loss_batch))
             loss_batch[:] = []
@@ -207,6 +216,11 @@ def main():
                 print('With droupout, iter: %d, accuracy: %g'%(e, test_acc[e]))
                 print('Without dropout, iter: %d, entropy: %g' % (e, loss2[e]))
                 print('Without droupout, iter: %d, accuracy: %g' % (e, test_acc2[e]))
+
+        training_time[0] = training_time_1
+        training_time[1] = training_time_2
+        labels = ['With dropout', 'Without dropout']
+        x = [0, 1]
 
         #plot figures here
         pylab.figure(1)
@@ -224,6 +238,12 @@ def main():
         pylab.ylabel('accuracy')
         pylab.legend(['With dropout', 'Without dropout'])
         pylab.savefig('figures/partb_5(1)_accuracy_merged.png')
+
+        pylab.figure(3)
+        pylab.plot(range(len(training_time)), training_time)
+        pylab.ylabel('training time')
+        pylab.xticks(x, labels)
+        pylab.savefig('figures/partb_5(1)_trainingtime_merged.png')
 
         pylab.show()
         

@@ -20,7 +20,6 @@ batch_size = 128
 
 no_epochs = 100 #originally 100
 lr = 0.01
-#clipping_threshold = 2
 
 tf.logging.set_verbosity(tf.logging.ERROR)
 seed = 10
@@ -120,8 +119,6 @@ def main():
     entropy2 = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(labels=tf.one_hot(y2_, MAX_LABEL), logits=logits2))
     train_op2 = tf.train.AdamOptimizer(lr).minimize(entropy2)
     accuracy2 = tf.reduce_mean(tf.cast(tf.equal(tf.argmax(logits2, axis=1), y2_), tf.float64))
-
-
 
     with tf.Session() as sess:
         sess.run(tf.global_variables_initializer())

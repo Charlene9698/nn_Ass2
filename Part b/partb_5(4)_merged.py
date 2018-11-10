@@ -3,7 +3,7 @@ import pandas
 import tensorflow as tf
 import csv
 import pylab
-
+import time
 import os
 
 
@@ -134,21 +134,29 @@ def main():
         N = len(x_train)
         idx = np.arange(N)
 
+        training_time_1 = 0  # with dropout
+        training_time_2 = 0  # without dropout
+        training_time = [[], []]
+
         for e in range(no_epochs):
             np.random.shuffle(idx)
             trainX_batch, trainY_batch = x_train[idx], y_train[idx]
 
             for start, end in zip(range(0, N, batch_size), range(batch_size, N, batch_size)):
+                start1 = time.time()
                 word_list_, _, loss_  = sess.run([word_list, train_op, entropy], {x: trainX_batch[start:end], y_: trainY_batch[start:end], keep_prob:0.5})
                 loss_batch.append(loss_)
+                training_time_1 += time.time() - start1
 
                 # without dropout
+                start2 = time.time()
                 word_list2_, _, loss2_ = sess.run([word_list2, train_op2, entropy2],{x2: trainX_batch[start:end], y2_: trainY_batch[start:end]})
                 loss_batch2.append(loss2_)
+                training_time_2 += time.time() - start2
 
             loss.append(sum(loss_batch) / len(loss_batch))
             loss_batch[:] = []
-            acc.append(accuracy.eval(feed_dict={x: x_test, y_: y_test, keep_prob:0.5}))
+            acc.append(accuracy.eval(feed_dict={x: x_test, y_: y_test, keep_prob:1}))
 
             #without dropout
             loss2.append(sum(loss_batch2) / len(loss_batch2))
@@ -160,6 +168,11 @@ def main():
                 print('With dropout, epoch: %d, accuracy: %g' %(e, acc[e]))
                 print('Without dropout, epoch: %d, entropy: %g' % (e, loss2[e]))
                 print('Without dropout, epoch: %d, accuracy: %g' % (e, acc2[e]))
+
+        training_time[0] = training_time_1
+        training_time[1] = training_time_2
+        labels = ['With dropout', 'Without dropout']
+        x = [0, 1]
 
         pylab.figure(1)
         pylab.plot(range(len(loss)), loss)
@@ -177,7 +190,15 @@ def main():
         pylab.legend(['With dropout', 'Without dropout'])
         pylab.savefig('figures/partb_5(4)_accuracy_merged.png')
 
+        pylab.figure(3)
+        pylab.plot(range(len(training_time)), training_time)
+        pylab.ylabel('training time')
+        pylab.xticks(x, labels)
+        pylab.savefig('figures/partb_5(4)_trainingtime_merged.png')
+
         pylab.show()
+
+        sess.close()
   
 if __name__ == '__main__':
     main()
