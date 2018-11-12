@@ -37,7 +37,7 @@ def rnn_model(x, keep_prob):
 
     encoding = tf.nn.dropout(encoding, keep_prob)
 
-    logits = tf.layers.dense(encoding, MAX_LABEL, activation=tf.nn.softmax)
+    logits = tf.layers.dense(encoding, MAX_LABEL, activation=None)
 
     return logits, word_list
 
@@ -51,7 +51,7 @@ def rnn_model2(x):
     cell = tf.nn.rnn_cell.GRUCell(HIDDEN_SIZE, reuse=True)
     _, encoding = tf.nn.static_rnn(cell, word_list, dtype=tf.float32)
 
-    logits = tf.layers.dense(encoding, MAX_LABEL, activation=tf.nn.softmax)
+    logits = tf.layers.dense(encoding, MAX_LABEL, activation=None)
 
     return logits, word_list
 

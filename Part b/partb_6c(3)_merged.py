@@ -34,7 +34,7 @@ def rnn_model(x):
     cell = tf.nn.rnn_cell.GRUCell(HIDDEN_SIZE, name="gru1")
     _, encoding = tf.nn.static_rnn(cell, byte_list, dtype=tf.float32)
 
-    logits = tf.layers.dense(encoding, MAX_LABEL, activation=tf.nn.softmax)
+    logits = tf.layers.dense(encoding, MAX_LABEL, activation=None)
 
     return logits, byte_list
 
@@ -47,7 +47,7 @@ def rnn_model2(x):
     cell = tf.nn.rnn_cell.GRUCell(HIDDEN_SIZE, name='gru2')
     _, encoding = tf.nn.static_rnn(cell, byte_list, dtype=tf.float32)
 
-    logits = tf.layers.dense(encoding, MAX_LABEL, activation=tf.nn.softmax)
+    logits = tf.layers.dense(encoding, MAX_LABEL, activation=None)
 
     return logits, byte_list
 

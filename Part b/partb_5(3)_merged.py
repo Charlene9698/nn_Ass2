@@ -37,7 +37,7 @@ def rnn_model(x, keep_prob):
 
     encoding = tf.nn.dropout(encoding, keep_prob)
 
-    logits = tf.layers.dense(encoding, MAX_LABEL, activation=tf.nn.softmax)
+    logits = tf.layers.dense(encoding, MAX_LABEL, activation=None)
 
     return logits, byte_list
 

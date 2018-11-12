@@ -35,7 +35,7 @@ def rnn_model_basicRnn(x):
     cell = tf.nn.rnn_cell.BasicRNNCell(HIDDEN_SIZE)
     _, encoding = tf.nn.static_rnn(cell, word_list, dtype=tf.float32)
 
-    logits = tf.layers.dense(encoding, MAX_LABEL, activation=tf.nn.softmax)
+    logits = tf.layers.dense(encoding, MAX_LABEL, activation=None)
 
     return logits, word_list
 
@@ -50,7 +50,7 @@ def rnn_model_lstm(x):
     cell = tf.nn.rnn_cell.BasicLSTMCell(HIDDEN_SIZE)
     outputs, states = tf.nn.static_rnn(cell, word_list, dtype=tf.float32)
 
-    logits = tf.layers.dense(states[-1], MAX_LABEL, activation=tf.nn.softmax)
+    logits = tf.layers.dense(states[-1], MAX_LABEL, activation=None)
     return logits, word_list
 
 #model with gru cells
@@ -64,7 +64,7 @@ def rnn_model_gru(x):
     cell = tf.nn.rnn_cell.GRUCell(HIDDEN_SIZE)
     _, encoding = tf.nn.static_rnn(cell, word_list, dtype=tf.float32)
 
-    logits = tf.layers.dense(encoding, MAX_LABEL, activation=tf.nn.softmax)
+    logits = tf.layers.dense(encoding, MAX_LABEL, activation=None)
 
     return logits, word_list
 
